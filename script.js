@@ -61,6 +61,16 @@ async function loadSocialFeed() {
           <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
             <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
           </div>`;
+      } else if (mediaUrl.includes("t.me/")) {
+        // دعم فيديو تليجرام المباشر داخل الموقع عبر الودجت الرسمي
+        const tgPostPath = mediaUrl.replace("https://t.me/", "").replace("http://t.me/", "");
+        mediaElement = `
+          <div style="width: 100%; display: flex; justify-content: center; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                    data-telegram-post="${tgPostPath}" 
+                    data-width="100%">
+            </script>
+          </div>`;
       } else if (data.type === "video" || mediaUrl.match(/\.(mp4|webm|ogg|mov)/i) || mediaUrl.includes("firebasestorage")) {
         mediaElement = `<video src="${mediaUrl}" controls preload="metadata" style="width: 100%; border-radius: 12px;"></video>`;
       } else if (mediaUrl) {
@@ -102,7 +112,6 @@ if (createPostForm) {
     const uploadStatus = document.getElementById("uploadStatus");
     const publishBtn = document.getElementById("publishBtn");
 
-    // التحقق المرن: يجب أن يوجد وصف أو ملف مرفق أو رابط (واحد على الأقل كافٍ)
     if (!content && !mediaFile && !mediaUrlInput) {
       alert("برجاء كتابة وصف، أو اختيار فيديو من المعرض، أو وضع رابط!");
       return;
@@ -116,7 +125,6 @@ if (createPostForm) {
       let finalMediaUrl = mediaUrlInput;
       let mediaType = "url";
 
-      // لو تم اختيار ملف من المعرض، نقوم برفعه أولاً
       if (mediaFile) {
         const fileRef = storageRef(storage, `academy_posts/${Date.now()}_${mediaFile.name}`);
         const snapshot = await uploadBytes(fileRef, mediaFile);
