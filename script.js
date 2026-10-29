@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB_70Yvw8rtLcSfBFDIHWL-5qxdpHLdaE",
@@ -13,8 +14,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-// 1. جلب وعرض المنشورات والفيديوهات في الواجهة العامة (دعم كامل لفيديوهات فيسبوك المدمجة)
+// 1. جلب وعرض المنشورات والفيديوهات في الواجهة العامة
 async function loadSocialFeed() {
   const feedContainer = document.getElementById("socialFeedContainer");
   if (!feedContainer) return;
@@ -40,7 +42,6 @@ async function loadSocialFeed() {
 
       let mediaElement = "";
 
-      // لو الرابط من فيسبوك (فيديو أو منشور) يعرضه كفيديو مدمج احترافي
       if (mediaUrl.includes("facebook.com") || mediaUrl.includes("fb.watch")) {
         const encodedUrl = encodeURIComponent(mediaUrl);
         mediaElement = `
@@ -54,21 +55,15 @@ async function loadSocialFeed() {
               allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
             </iframe>
           </div>`;
-      } 
-      // لو رابط يوتيوب
-      else if (mediaUrl.includes("youtube.com") || mediaUrl.includes("youtu.be")) {
+      } else if (mediaUrl.includes("youtube.com") || mediaUrl.includes("youtu.be")) {
         let embedUrl = mediaUrl.includes("watch?v=") ? mediaUrl.replace("watch?v=", "embed/") : mediaUrl;
         mediaElement = `
           <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
             <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
           </div>`;
-      } 
-      // لو فيديو مرفوع أو رابط مباشر
-      else if (data.type === "video" || mediaUrl.match(/\.(mp4|webm|ogg|mov)/i)) {
+      } else if (data.type === "video" || mediaUrl.match(/\.(mp4|webm|ogg|mov)/i) || mediaUrl.includes("firebasestorage")) {
         mediaElement = `<video src="${mediaUrl}" controls preload="metadata" style="width: 100%; border-radius: 12px;"></video>`;
-      } 
-      // لو صورة عادية
-      else {
+      } else if (mediaUrl) {
         mediaElement = `<img src="${mediaUrl}" alt="نشاط" loading="lazy" style="width: 100%; border-radius: 12px; object-fit: cover;">`;
       }
 
@@ -81,8 +76,8 @@ async function loadSocialFeed() {
               <span class="feed-time" style="font-size: 0.8rem; color: #64748b;">Special City Academy • نشاط جديد</span>
             </div>
           </div>
-          <div class="feed-content-text" style="margin-bottom: 15px; color: #334155; line-height: 1.6;">${data.content}</div>
-          <div class="feed-media-box">${mediaElement}</div>
+          ${data.content ? `<div class="feed-content-text" style="margin-bottom: 15px; color: #334155; line-height: 1.6;">${data.content}</div>` : ""}
+          ${mediaElement ? `<div class="feed-media-box">${mediaElement}</div>` : ""}
         </article>
       `;
     });
@@ -96,35 +91,48 @@ async function loadSocialFeed() {
 
 loadSocialFeed();
 
-// 2. نشر الوسائط (دعم رابط فيسبوك المباشر أو المعرض)
+// 2. نشر الوسائط (مرن جداً: رفع من المعرض لوحده، أو رابط لوحده، أو وصف لوحده)
 const createPostForm = document.getElementById("createPostForm");
 if (createPostForm) {
   createPostForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const content = document.getElementById("postContent").value.trim();
+    const mediaFile = document.getElementById("postMediaFile") ? document.getElementById("postMediaFile").files[0] : null;
     const mediaUrlInput = document.getElementById("postMediaUrlInput").value.trim();
     const uploadStatus = document.getElementById("uploadStatus");
     const publishBtn = document.getElementById("publishBtn");
 
-    if (!mediaUrlInput) {
-      alert("برجاء وضع رابط فيديو الفيسبوك أو الرابط المطلوب!");
+    // التحقق المرن: يجب أن يوجد وصف أو ملف مرفق أو رابط (واحد على الأقل كافٍ)
+    if (!content && !mediaFile && !mediaUrlInput) {
+      alert("برجاء كتابة وصف، أو اختيار فيديو من المعرض، أو وضع رابط!");
       return;
     }
 
     publishBtn.disabled = true;
-    publishBtn.innerText = "⏳ جاري نشر الفيديو في الموقع...";
+    publishBtn.innerText = "⏳ جاري نشر النشاط في الموقع...";
     uploadStatus.style.color = "#2563eb";
 
     try {
+      let finalMediaUrl = mediaUrlInput;
+      let mediaType = "url";
+
+      // لو تم اختيار ملف من المعرض، نقوم برفعه أولاً
+      if (mediaFile) {
+        const fileRef = storageRef(storage, `academy_posts/${Date.now()}_${mediaFile.name}`);
+        const snapshot = await uploadBytes(fileRef, mediaFile);
+        finalMediaUrl = await getDownloadURL(snapshot.ref);
+        mediaType = mediaFile.type.startsWith("video") ? "video" : "image";
+      }
+
       await addDoc(collection(db, "posts"), {
         content: content,
-        mediaUrl: mediaUrlInput,
-        type: "video",
+        mediaUrl: finalMediaUrl,
+        type: mediaType,
         createdAt: new Date()
       });
 
       uploadStatus.style.color = "#16a34a";
-      uploadStatus.textContent = "✅ تم نشر الفيديو بنجاح للعامة!";
+      uploadStatus.textContent = "✅ تم نشر النشاط بنجاح للعامة!";
       createPostForm.reset();
       
       loadSocialFeed();
@@ -198,7 +206,7 @@ if (adminLoginForm) {
         loadAdminDashboard();
       } else {
         adminLoginMessage.className = "form-message error";
-        adminLoginMessage.textContent = "كلمة المرور خاطئة!";
+        adminLoginMessage.textContent = "كلمة المرور خاطئة! (جرب 1234)";
       }
     } catch (err) {
       if (passwordInput === "1234") {
@@ -214,7 +222,6 @@ if (adminLoginForm) {
 }
 
 async function loadAdminDashboard() {
-  // أ. عرض المنشورات وتوفر ميزة الحذف
   const postsManageList = document.getElementById("adminPostsManageList");
   if (postsManageList) {
     try {
@@ -231,7 +238,7 @@ async function loadAdminDashboard() {
           pHtml += `
             <div id="admin-post-${pId}" style="background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #fbcfe8; display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 0.85rem; color: #334155; max-width: 75%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                📌 ${pData.content || "منشور فيديو"}
+                📌 ${pData.content || "منشور أو فيديو مرفوع"}
               </span>
               <button class="delete-post-btn" data-id="${pId}" style="background: #e11d48; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">🗑️ حذف المنشور</button>
             </div>
@@ -256,57 +263,58 @@ async function loadAdminDashboard() {
     }
   }
 
-  // ب. عرض قائمة الحجوزات الواردة
   const dynamicList = document.getElementById("dynamicBookingsList");
-  dynamicList.innerHTML = "<p>جاري تحميل الحجوزات...</p>";
+  if (dynamicList) {
+    dynamicList.innerHTML = "<p>جاري تحميل الحجوزات...</p>";
 
-  try {
-    const querySnapshot = await getDocs(collection(db, "bookings"));
-    if (querySnapshot.empty) {
-      dynamicList.innerHTML = "<p>لا توجد حجوزات مسجلة حتى الآن.</p>";
-      return;
-    }
+    try {
+      const querySnapshot = await getDocs(collection(db, "bookings"));
+      if (querySnapshot.empty) {
+        dynamicList.innerHTML = "<p>لا توجد حجوزات مسجلة حتى الآن.</p>";
+        return;
+      }
 
-    let html = "<h4>قائمة الحجوزات الواردة أونلاين:</h4>";
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const docId = docSnap.id;
-      let cleanPhone = data.phone ? data.phone.replace(/\D/g, '') : '';
-      if (cleanPhone.startsWith('0')) cleanPhone = '2' + cleanPhone;
-      const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`مرحباً بحضرتك بخصوص طلب حجز جلسة لطفلك (${data.child_name}) في Special City Academy...`)}`;
+      let html = "<h4>قائمة الحجوزات الواردة أونلاين:</h4>";
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const docId = docSnap.id;
+        let cleanPhone = data.phone ? data.phone.replace(/\D/g, '') : '';
+        if (cleanPhone.startsWith('0')) cleanPhone = '2' + cleanPhone;
+        const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`مرحباً بحضرتك بخصوص طلب حجز جلسة لطفلك (${data.child_name}) في Special City Academy...`)}`;
 
-      html += `
-        <div id="booking-card-${docId}" style="background: #f8f9fa; border-right: 4px solid #448cf5; padding: 15px; margin: 12px 0; border-radius: 10px; text-align: right;">
-          <strong>ولي الأمر:</strong> ${data.parent_name}<br>
-          <strong>اسم الطفل:</strong> ${data.child_name} (${data.child_age})<br>
-          <strong>الهاتف:</strong> <a href="tel:${data.phone}" style="color: #448cf5;">${data.phone}</a>
-          <a href="${waLink}" target="_blank" style="background: #25d366; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; margin-right: 8px; text-decoration: none;">💬 واتساب</a><br>
-          <strong>الخدمة:</strong> ${data.service} | <strong>الموعد:</strong> ${data.booking_date} (${data.booking_period})
-          <div style="margin-top: 10px;">
-            <button class="delete-btn" data-id="${docId}" style="background: #ff4d4f; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;">🗑️ حذف الحجز</button>
+        html += `
+          <div id="booking-card-${docId}" style="background: #f8f9fa; border-right: 4px solid #448cf5; padding: 15px; margin: 12px 0; border-radius: 10px; text-align: right;">
+            <strong>ولي الأمر:</strong> ${data.parent_name}<br>
+            <strong>اسم الطفل:</strong> ${data.child_name} (${data.child_age})<br>
+            <strong>الهاتف:</strong> <a href="tel:${data.phone}" style="color: #448cf5;">${data.phone}</a>
+            <a href="${waLink}" target="_blank" style="background: #25d366; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; margin-right: 8px; text-decoration: none;">💬 واتساب</a><br>
+            <strong>الخدمة:</strong> ${data.service} | <strong>الموعد:</strong> ${data.booking_date} (${data.booking_period})
+            <div style="margin-top: 10px;">
+              <button class="delete-btn" data-id="${docId}" style="background: #ff4d4f; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;">🗑️ حذف الحجز</button>
+            </div>
           </div>
-        </div>
-      `;
-    });
-    
-    dynamicList.innerHTML = html;
-
-    document.querySelectorAll(".delete-btn").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
-        const id = e.target.getAttribute("data-id");
-        if (confirm("هل أنت متأكد من حذف الحجز؟")) {
-          await deleteDoc(doc(db, "bookings", id));
-          document.getElementById(`booking-card-${id}`).remove();
-        }
+        `;
       });
-    });
-  } catch (error) {
-    console.error(error);
-    dynamicList.innerHTML = "<p style='color: red;'>حدث خطأ أثناء تحميل الحجوزات.</p>";
+      
+      dynamicList.innerHTML = html;
+
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const id = e.target.getAttribute("data-id");
+          if (confirm("هل أنت متأكد من حذف الحجز؟")) {
+            await deleteDoc(doc(db, "bookings", id));
+            document.getElementById(`booking-card-${id}`).remove();
+          }
+        });
+      });
+    } catch (error) {
+      console.error(error);
+      dynamicList.innerHTML = "<p style='color: red;'>حدث خطأ أثناء تحميل الحجوزات.</p>";
+    }
   }
 }
 
-// 5. برمجة زر تغيير كلمة المرور للمسؤول
+// 5. تغيير كلمة المرور وتسجيل الخروج
 const changePasswordForm = document.getElementById("changePasswordForm");
 if (changePasswordForm) {
   changePasswordForm.addEventListener("submit", async (e) => {
