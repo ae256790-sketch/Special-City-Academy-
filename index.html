@@ -275,7 +275,7 @@
             <button type="button" id="adminLogout" class="btn btn-light" style="padding: 5px 15px; font-size: 12px;">تسجيل الخروج</button>
           </div>
 
-          <!-- 1. نموذج نشر الفيديوهات والصور (الخيارين: رفع مباشر أو رابط خارجي) -->
+          <!-- 1. نموذج نشر الفيديوهات والصور (تم تحديثه لدعم روابط فيسبوك المباشرة) -->
           <div style="background: #eff6ff; padding: 20px; border-radius: 16px; border: 1px solid #bfdbfe; margin-bottom: 25px;">
             <h4 style="color: #1e40af; font-size: 1.1rem; margin-top: 0; margin-bottom: 10px;">📹 نشر فيديو أو نشاط جديد للعامة</h4>
             <form id="createPostForm">
@@ -290,10 +290,10 @@
                 <input type="file" id="postMediaFile" accept="video/*,image/*" style="width: 100%;">
               </div>
 
-              <!-- الخيار الثاني: رابط خارجي (درايف/يوتيوب) -->
+              <!-- الخيار الثاني: رابط خارجي أو رابط فيسبوك المباشر -->
               <div class="form-group" style="margin-bottom: 15px; background: white; padding: 12px; border-radius: 10px; border: 1px dashed #f59e0b;">
-                <label style="color: #92400e; display: block; margin-bottom: 5px;">🔗 الخيار 2: أو ضع رابط درايف/يوتيوب (للفيديوهات الطويلة):</label>
-                <input type="url" id="postMediaUrlInput" placeholder="الصق رابط Google Drive أو YouTube هنا إذا وجد" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                <label style="color: #92400e; display: block; margin-bottom: 5px;">🔗 الخيار 2: أو ضع رابط فيديو فيسبوك / يوتيوب / درايف:</label>
+                <input type="url" id="postMediaUrlInput" placeholder="الصق رابط فيديو الفيسبوك هنا مباشرة لتشغيله جوه الموقع" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
               </div>
 
               <button type="submit" id="publishBtn" class="btn btn-primary" style="width: 100%;">🚀 نشر المنشور فوراً للعامة</button>
