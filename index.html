@@ -275,25 +275,25 @@
             <button type="button" id="adminLogout" class="btn btn-light" style="padding: 5px 15px; font-size: 12px;">تسجيل الخروج</button>
           </div>
 
-          <!-- 1. نموذج نشر الفيديوهات والصور (تم تحديثه لدعم روابط فيسبوك المباشرة) -->
+          <!-- 1. نموذج نشر الفيديوهات والصور (محدث: الوصف اختياري وخيارات منفصلة تماماً بدون إجبار) -->
           <div style="background: #eff6ff; padding: 20px; border-radius: 16px; border: 1px solid #bfdbfe; margin-bottom: 25px;">
             <h4 style="color: #1e40af; font-size: 1.1rem; margin-top: 0; margin-bottom: 10px;">📹 نشر فيديو أو نشاط جديد للعامة</h4>
             <form id="createPostForm">
               <div class="form-group" style="margin-bottom: 12px;">
-                <label style="color: #1e3a8a;">الوصف أو الشرح مع الفيديو/الصورة:</label>
-                <textarea id="postContent" rows="3" placeholder="اكتب تفاصيل نشاط الطفل..." required style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #93c5fd;"></textarea>
+                <label style="color: #1e3a8a;">الوصف أو الشرح (اختياري):</label>
+                <textarea id="postContent" rows="3" placeholder="اكتب تفاصيل نشاط الطفل (اختياري)..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #93c5fd;"></textarea>
               </div>
 
-              <!-- الخيار الأول: رفع ملف من المعرض -->
+              <!-- الخيار الأول: رفع ملف من المعرض (منفصل تماماً وغير إجباري للرابط) -->
               <div class="form-group" style="margin-bottom: 15px; background: white; padding: 12px; border-radius: 10px; border: 1px dashed #3b82f6;">
-                <label style="color: #1e3a8a; display: block; margin-bottom: 5px;">📱 الخيار 1: رفع فيديو أو صورة من المعرض (للفيديوهات القصيرة):</label>
+                <label style="color: #1e3a8a; display: block; margin-bottom: 5px;">📱 الخيار 1: رفع فيديو أو صورة من المعرض:</label>
                 <input type="file" id="postMediaFile" accept="video/*,image/*" style="width: 100%;">
               </div>
 
-              <!-- الخيار الثاني: رابط خارجي أو رابط فيسبوك المباشر -->
+              <!-- الخيار الثاني: رابط خارجي أو يوتيوب (منفصل تماماً وغير إجباري للملف) -->
               <div class="form-group" style="margin-bottom: 15px; background: white; padding: 12px; border-radius: 10px; border: 1px dashed #f59e0b;">
-                <label style="color: #92400e; display: block; margin-bottom: 5px;">🔗 الخيار 2: أو ضع رابط فيديو فيسبوك / يوتيوب / درايف:</label>
-                <input type="url" id="postMediaUrlInput" placeholder="الصق رابط فيديو الفيسبوك هنا مباشرة لتشغيله جوه الموقع" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                <label style="color: #92400e; display: block; margin-bottom: 5px;">🔗 الخيار 2: أو ضع رابط يوتيوب / درايف:</label>
+                <input type="url" id="postMediaUrlInput" placeholder="الصق الرابط هنا إن وجد" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
               </div>
 
               <button type="submit" id="publishBtn" class="btn btn-primary" style="width: 100%;">🚀 نشر المنشور فوراً للعامة</button>
