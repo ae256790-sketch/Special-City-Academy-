@@ -14,7 +14,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 1. جلب وعرض المنشورات والفيديوهات في الواجهة العامة (دعم فيديوهات فيسبوك المدمجة)
+// 1. جلب وعرض المنشورات والفيديوهات في الواجهة العامة (دعم كامل لفيديوهات فيسبوك المدمجة)
 async function loadSocialFeed() {
   const feedContainer = document.getElementById("socialFeedContainer");
   if (!feedContainer) return;
@@ -40,41 +40,48 @@ async function loadSocialFeed() {
 
       let mediaElement = "";
 
-      // لو الرابط من فيسبوك (فيديو أو منشور) يعرضه كفيديو مدمج زي الفيسبوك تماماً
+      // لو الرابط من فيسبوك (فيديو أو منشور) يعرضه كفيديو مدمج احترافي
       if (mediaUrl.includes("facebook.com") || mediaUrl.includes("fb.watch")) {
         const encodedUrl = encodeURIComponent(mediaUrl);
         mediaElement = `
-          <iframe 
-            src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&width=500" 
-            style="border:none; overflow:hidden; width:100%; height:380px;" 
-            scrolling="no" 
-            frameborder="0" 
-            allowfullscreen="true" 
-            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
-          </iframe>`;
+          <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
+            <iframe 
+              src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&width=500" 
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:none;" 
+              scrolling="no" 
+              frameborder="0" 
+              allowfullscreen="true" 
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+            </iframe>
+          </div>`;
       } 
       // لو رابط يوتيوب
       else if (mediaUrl.includes("youtube.com") || mediaUrl.includes("youtu.be")) {
         let embedUrl = mediaUrl.includes("watch?v=") ? mediaUrl.replace("watch?v=", "embed/") : mediaUrl;
-        mediaElement = `<iframe src="${embedUrl}" style="width:100%; height:350px; border:0;" allowfullscreen></iframe>`;
+        mediaElement = `
+          <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
+            <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
+          </div>`;
       } 
-      // لو فيديو عادي أو صورة
+      // لو فيديو مرفوع أو رابط مباشر
       else if (data.type === "video" || mediaUrl.match(/\.(mp4|webm|ogg|mov)/i)) {
-        mediaElement = `<video src="${mediaUrl}" controls preload="metadata"></video>`;
-      } else {
-        mediaElement = `<img src="${mediaUrl}" alt="نشاط" loading="lazy">`;
+        mediaElement = `<video src="${mediaUrl}" controls preload="metadata" style="width: 100%; border-radius: 12px;"></video>`;
+      } 
+      // لو صورة عادية
+      else {
+        mediaElement = `<img src="${mediaUrl}" alt="نشاط" loading="lazy" style="width: 100%; border-radius: 12px; object-fit: cover;">`;
       }
 
       html += `
-        <article class="feed-card">
-          <div class="feed-header">
-            <img src="https://files.catbox.moe/pq1rnu.jpg" alt="مستر عمر رمزي" class="feed-avatar">
+        <article class="feed-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
+          <div class="feed-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+            <img src="https://files.catbox.moe/pq1rnu.jpg" alt="مستر عمر رمزي" class="feed-avatar" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
             <div class="feed-author-info">
-              <span class="feed-author-name">مستر عمر رمزي</span>
-              <span class="feed-time">Special City Academy • نشاط جديد</span>
+              <span class="feed-author-name" style="display: block; font-weight: bold; color: #0f172a;">مستر عمر رمزي</span>
+              <span class="feed-time" style="font-size: 0.8rem; color: #64748b;">Special City Academy • نشاط جديد</span>
             </div>
           </div>
-          <div class="feed-content-text">${data.content}</div>
+          <div class="feed-content-text" style="margin-bottom: 15px; color: #334155; line-height: 1.6;">${data.content}</div>
           <div class="feed-media-box">${mediaElement}</div>
         </article>
       `;
@@ -89,7 +96,7 @@ async function loadSocialFeed() {
 
 loadSocialFeed();
 
-// 2. نشر الوسائط (باستخدام رابط فيديو الفيسبوك مباشرة)
+// 2. نشر الوسائط (دعم رابط فيسبوك المباشر أو المعرض)
 const createPostForm = document.getElementById("createPostForm");
 if (createPostForm) {
   createPostForm.addEventListener("submit", async (e) => {
@@ -100,7 +107,7 @@ if (createPostForm) {
     const publishBtn = document.getElementById("publishBtn");
 
     if (!mediaUrlInput) {
-      alert("برجاء وضع رابط فيديو الفيسبوك!");
+      alert("برجاء وضع رابط فيديو الفيسبوك أو الرابط المطلوب!");
       return;
     }
 
