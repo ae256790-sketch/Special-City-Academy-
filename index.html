@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Special City Academy - مستر عمر رمزي</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="site-shell" dir="rtl">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#home" class="brand">
+        <span class="brand-mark">✿</span>
+        <span class="brand-text">
+          <strong>Special City Academy</strong>
+          <small>معًا نصنع مستقبلًا أفضل لطفلك</small>
+        </span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="فتح القائمة">☰</button>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#home">الرئيسية</a>
+        <a href="#feed">أنشطتنا والفيديوهات</a>
+        <a href="#services">خدماتنا</a>
+        <a href="#about">عن المركز</a>
+        <a href="#booking">احجز موعدك</a>
+        <a href="#contact">تواصل معنا</a>
+      </nav>
+
+      <a href="#adminLogin" class="btn btn-dark header-admin">🔐 دخول الإدارة</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="eyebrow">💛 كل طفل عنده حكاية نجاح</span>
+
+          <h1>
+            كل خطوة صغيرة<br>
+            <span class="gradient-text">بتصنع فرق كبير</span>
+          </h1>
+
+          <p>
+            في Special City Academy بنهتم بطفلك وبنساعده يكتشف قدراته
+            وينمّي مهاراته في بيئة مليانة احتواء وتشجيع، خطوة بخطوة
+            وبالتعاون مع الأسرة.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="#booking" class="btn btn-primary">📅 احجز لطفلك دلوقتي</a>
+            <a href="#feed" class="btn btn-light">🎥 شوف فيديوهات أنشطتنا ←</a>
+          </div>
+
+          <div class="hero-features">
+            <span>✓ اهتمام بكل طفل</span>
+            <span>✓ متابعة مستمرة</span>
+            <span>✓ تعاون مع الأسرة</span>
+          </div>
+
+          <div class="supervisor-pill">
+            <span class="supervisor-icon">🎓</span>
+            <span>
+              <small>مؤسس الأكاديمية والمشرف العام</small>
+              <strong>مستر عمر رمزي</strong>
+            </span>
+            <span class="supervisor-sparkle">✦</span>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 24px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 2px solid #e2e8f0; text-align: center; margin-bottom: 20px;">
+            <div style="position: relative; display: inline-block; margin-bottom: 12px;">
+              <div style="padding: 4px; background: linear-gradient(45deg, #2563eb, #3b82f6); border-radius: 50%; box-shadow: 0 8px 20px rgba(37,99,235,0.3);">
+                <img
+                  src="https://files.catbox.moe/pq1rnu.jpg"
+                  alt="مستر عمر رمزي"
+                  style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; object-position: center 20%; display: block; border: 3px solid #ffffff;"
+                >
+              </div>
+              <span style="position: absolute; bottom: 8px; right: 8px; background: #22c55e; width: 18px; height: 18px; border-radius: 50%; border: 3px solid #ffffff;" title="نشط"></span>
+            </div>
+            <h3 style="margin: 5px 0; color: #0f172a; font-size: 1.3rem; font-weight: 800;">مستر عمر رمزي</h3>
+            <span style="display: inline-block; padding: 4px 12px; background: #eff6ff; color: #2563eb; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">مؤسس الأكاديمية والمشرف العام</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Social Feed Section (أنشطة الأسبوع وفيديوهات الأطفال للعامة) -->
+    <section class="section feed-section" id="feed" style="background: #f8fafc; padding: 60px 0;">
+      <div class="container">
+        <div class="section-heading" style="text-align: center; margin-bottom: 30px;">
+          <span class="eyebrow">📹 نبض الأكاديمية</span>
+          <h2>يوميات وأنشطة <span class="gradient-text">أطفالنا</span></h2>
+          <p>شاهد فيديوهات وصور شغلنا اليومي والأسبوعي مع الأخصائيين والأطفال مباشر من المركز.</p>
+        </div>
+
+        <div id="socialFeedContainer" class="feed-grid" style="max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px;">
+          <div style="text-align: center; padding: 30px; color: #64748b; font-size: 0.95rem;">جاري تحميل الفيديوهات والأنشطة...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section class="section services-section" id="services">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">✨ بنكبر مع كل إنجاز</span>
+          <h2>خدماتنا <span class="gradient-text">لطفلك</span></h2>
+          <p>برامج وأنشطة بتراعي احتياجات كل طفل، وبتشجعه يتقدم على قد قدراته.</p>
+        </div>
+
+        <div class="services-grid">
+          <article class="service-card service-pink">
+            <div class="service-image">
+              <img src="https://images.unsplash.com/photo-1503919005314-30d93d07d823?auto=format&fit=crop&w=700&q=80" alt="التخاطب" loading="lazy">
+            </div>
+            <div class="service-body">
+              <h3>التخاطب وتنمية اللغة</h3>
+              <p>أنشطة وجلسات مناسبة لدعم التواصل وفهم اللغة والتعبير عن الاحتياجات.</p>
+            </div>
+          </article>
+
+          <article class="service-card service-orange">
+            <div class="service-image">
+              <img src="https://images.unsplash.com/photo-1566004100631-35d015d6a491?auto=format&fit=crop&w=700&q=80" alt="تنمية المهارات" loading="lazy">
+            </div>
+            <div class="service-body">
+              <h3>تنمية المهارات</h3>
+              <p>أنشطة تساعد الطفل على تنمية الانتباه والتفاعل والمهارات اليومية.</p>
+            </div>
+          </article>
+
+          <article class="service-card service-green">
+            <div class="service-image">
+              <img src="https://images.unsplash.com/photo-1544776193-352d25ca82cd?auto=format&fit=crop&w=700&q=80" alt="تعديل السلوك" loading="lazy">
+            </div>
+            <div class="service-body">
+              <h3>تعديل السلوك</h3>
+              <p>دعم سلوكي بخطط مناسبة للطفل، مع تشجيع السلوك الإيجابي والتعاون مع الأسرة.</p>
+            </div>
+          </article>
+
+          <article class="service-card service-blue">
+            <div class="service-image">
+              <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=700&q=80" alt="صعوبات التعلم" loading="lazy">
+            </div>
+            <div class="service-body">
+              <h3>صعوبات التعلم</h3>
+              <p>أنشطة تعليمية تراعي احتياجات الطفل وتساعده على تطوير مهارات التعلم.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="section about-section" id="about">
+      <div class="container about-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+        <div class="about-visual">
+          <img src="https://images.unsplash.com/photo-1564429238817-393bd4286b2d?auto=format&fit=crop&w=1000&q=85" alt="عن المركز" loading="lazy" style="border-radius: 20px;">
+        </div>
+        <div class="about-content">
+          <span class="eyebrow">💚 حكايتنا معاكم</span>
+          <h2>مش مجرد جلسات...<br><span class="gradient-text">دي رحلة بنمشيها سوا</span></h2>
+          <p>في Special City Academy مؤمنين إن كل طفل عنده نقاط قوة تستحق إنها تظهر. بنهتم نفهم احتياجاته ونساعده يتعلم في بيئة آمنة.</p>
+          <div class="about-manager" style="display: flex; align-items: center; gap: 12px; margin-top: 20px;">
+            <img src="https://files.catbox.moe/pq1rnu.jpg" alt="مستر عمر رمزي" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: center 20%; border: 2px solid #2563eb;">
+            <div>
+              <small>مؤسس الأكاديمية والمشرف العام</small>
+              <strong style="display: block; color: var(--navy);">مستر عمر رمزي</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Location -->
+    <section class="section location-section" id="contact" style="background: #f1f5f9; padding: 40px 0;">
+      <div class="container">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+          <h3 style="color: #0f172a; text-align: center; margin-bottom: 20px; font-weight: 800;">📍 مقر الأكاديمية والمواعيد</h3>
+          <p style="margin-bottom: 10px;"><strong>العنوان:</strong> المحلة الكبرى - الحنفي - خلف بنك القاهرة - بجوار ستوديو سامولي (الدور الثاني)</p>
+          <p style="margin-bottom: 10px;"><strong>أيام العمل:</strong> من السبت إلى الخميس</p>
+          <p><strong>رقم التواصل:</strong> <a href="tel:01228945722" style="color: #2563eb;">01228945722</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Booking -->
+    <section class="section booking-section" id="booking">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">📅 أول خطوة بتبدأ من هنا</span>
+          <h2>احجز موعد <span class="gradient-text">لطفلك</span></h2>
+        </div>
+
+        <form class="booking-form" id="bookingForm" style="max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: var(--shadow);">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="parent_name">اسم ولي الأمر *</label>
+              <input id="parent_name" name="parent_name" type="text" placeholder="اكتب اسمك بالكامل" required>
+            </div>
+            <div class="form-group">
+              <label for="child_name">اسم الطفل *</label>
+              <input id="child_name" name="child_name" type="text" placeholder="اسم الطفل" required>
+            </div>
+            <div class="form-group">
+              <label for="child_age">عمر الطفل *</label>
+              <input id="child_age" name="child_age" type="text" placeholder="مثال: 4 سنوات" required>
+            </div>
+            <div class="form-group">
+              <label for="phone">رقم التليفون *</label>
+              <input id="phone" name="phone" type="tel" placeholder="01xxxxxxxxx" required>
+            </div>
+            <div class="form-group full-width" style="grid-column: 1 / -1;">
+              <label for="service">الخدمة المطلوبة *</label>
+              <select id="service" name="service" required>
+                <option value="">اختار الخدمة</option>
+                <option value="التخاطب وتنمية اللغة">التخاطب وتنمية اللغة</option>
+                <option value="تنمية المهارات">تنمية المهارات</option>
+                <option value="تعديل السلوك">تعديل السلوك</option>
+                <option value="صعوبات التعلم">صعوبات التعلم</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bookingDate">التاريخ المناسب *</label>
+              <input id="bookingDate" name="booking_date" type="date" required>
+            </div>
+            <div class="form-group">
+              <label for="bookingPeriod">الفترة المناسبة *</label>
+              <select id="bookingPeriod" name="booking_period" required>
+                <option value="">اختار الفترة</option>
+                <option value="10:00 - 12:00">من 10 صباحًا إلى 12 ظهرًا</option>
+                <option value="12:00 - 14:00">من 12 ظهرًا إلى 2 ظهرًا</option>
+                <option value="14:00 - 16:00">من 2 إلى 4 عصرًا</option>
+                <option value="16:00 - 18:00">من 4 إلى 6 مساءً</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary form-submit">إرسال طلب الحجز ←</button>
+          <div id="bookingMessage" class="form-message" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Admin login & Feed Publisher section (الخاص بمستر عمر فقط) -->
+    <section class="section admin-section" id="adminLogin">
+      <div class="container admin-container" style="max-width: 650px; text-align: center;">
+        <form class="admin-login-form" id="adminLoginForm" style="background: white; padding: 30px; border-radius: 20px; box-shadow: var(--shadow);">
+          <div style="font-size: 35px; margin-bottom: 10px;">🔐</div>
+          <h3>تسجيل دخول الإدارة</h3>
+          <p style="color: var(--muted); font-size: 13px; margin-bottom: 15px;">أدخل كلمة المرور الخاصة بمستر عمر رمزي</p>
+
+          <div class="form-group" style="text-align: right; margin-bottom: 15px;">
+            <label for="adminPassword">كلمة المرور</label>
+            <input id="adminPassword" name="password" type="password" placeholder="أدخل كلمة المرور" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px;">
+          </div>
+
+          <button type="submit" class="btn btn-dark form-submit" style="width: 100%;">دخول آمن ←</button>
+          <div id="adminLoginMessage" class="form-message" role="status" style="margin-top: 10px;"></div>
+        </form>
+
+        <div id="adminDashboard" class="admin-dashboard hidden" style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--shadow); margin-top: 20px; text-align: right;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">
+            <h3 style="color: var(--navy); margin: 0;">لوحة تحكم مستر عمر رمزي</h3>
+            <button type="button" id="adminLogout" class="btn btn-light" style="padding: 5px 15px; font-size: 12px;">تسجيل الخروج</button>
+          </div>
+
+          <!-- 1. نموذج نشر الفيديوهات والصور (الخيارين: رفع مباشر أو رابط خارجي) -->
+          <div style="background: #eff6ff; padding: 20px; border-radius: 16px; border: 1px solid #bfdbfe; margin-bottom: 25px;">
+            <h4 style="color: #1e40af; font-size: 1.1rem; margin-top: 0; margin-bottom: 10px;">📹 نشر فيديو أو نشاط جديد للعامة</h4>
+            <form id="createPostForm">
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label style="color: #1e3a8a;">الوصف أو الشرح مع الفيديو/الصورة:</label>
+                <textarea id="postContent" rows="3" placeholder="اكتب تفاصيل نشاط الطفل..." required style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #93c5fd;"></textarea>
+              </div>
+
+              <!-- الخيار الأول: رفع ملف من المعرض -->
+              <div class="form-group" style="margin-bottom: 15px; background: white; padding: 12px; border-radius: 10px; border: 1px dashed #3b82f6;">
+                <label style="color: #1e3a8a; display: block; margin-bottom: 5px;">📱 الخيار 1: رفع فيديو أو صورة من المعرض (للفيديوهات القصيرة):</label>
+                <input type="file" id="postMediaFile" accept="video/*,image/*" style="width: 100%;">
+              </div>
+
+              <!-- الخيار الثاني: رابط خارجي (درايف/يوتيوب) -->
+              <div class="form-group" style="margin-bottom: 15px; background: white; padding: 12px; border-radius: 10px; border: 1px dashed #f59e0b;">
+                <label style="color: #92400e; display: block; margin-bottom: 5px;">🔗 الخيار 2: أو ضع رابط درايف/يوتيوب (للفيديوهات الطويلة):</label>
+                <input type="url" id="postMediaUrlInput" placeholder="الصق رابط Google Drive أو YouTube هنا إذا وجد" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+              </div>
+
+              <button type="submit" id="publishBtn" class="btn btn-primary" style="width: 100%;">🚀 نشر المنشور فوراً للعامة</button>
+              <div id="uploadStatus" style="margin-top: 10px; font-size: 0.85rem; font-weight: bold; text-align: center;"></div>
+            </form>
+          </div>
+
+          <!-- 2. إدارة وحذف المنشورات -->
+          <div style="background: #fdf2f8; padding: 20px; border-radius: 16px; border: 1px solid #fbcfe8; margin-bottom: 25px;">
+            <h4 style="color: #9d174d; font-size: 1.1rem; margin-top: 0; margin-bottom: 10px;">🎬 إدارة وحذف المنشورات المنشورة بره</h4>
+            <div id="adminPostsManageList">جاري جلب المنشورات للحذف...</div>
+          </div>
+
+          <!-- 3. تغيير كلمة المرور -->
+          <div style="background: #fef3c7; padding: 20px; border-radius: 16px; border: 1px solid #fde68a; margin-bottom: 25px;">
+            <h4 style="color: #92400e; font-size: 1.1rem; margin-top: 0; margin-bottom: 10px;">🔑 تغيير كلمة مرور لوحة التحكم</h4>
+            <form id="changePasswordForm">
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label style="color: #78350f;">كلمة المرور الجديدة:</label>
+                <input type="password" id="newAdminPassword" placeholder="أدخل الباسورد الجديد" required style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #f59e0b; background: white;">
+              </div>
+              <button type="submit" class="btn btn-dark" style="width: 100%; background: #d97706; border: none;">💾 حفظ كلمة المرور الجديدة</button>
+              <div id="passwordChangeStatus" style="margin-top: 10px; font-size: 0.85rem; font-weight: bold; text-align: center;"></div>
+            </form>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+          <!-- 4. الحجوزات الواردة -->
+          <div id="dynamicBookingsList">جاري جلب الحجوزات من Firebase...</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align: center; padding: 20px; background: var(--navy); color: white; margin-top: 40px;">
+    <p>جميع الحقوق محفوظة © Special City Academy</p>
+  </footer>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
