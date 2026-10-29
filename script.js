@@ -1,6 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB_70Yvw8rtLcSfBFDIHWL-5qxdpHLdaE",
@@ -14,9 +13,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-// 1. جلب وعرض المنشورات والفيديوهات في الواجهة العامة
+// 1. جلب وعرض المنشورات والفيديوهات في الواجهة العامة (يوتيوب وروابط فقط)
 async function loadSocialFeed() {
   const feedContainer = document.getElementById("socialFeedContainer");
   if (!feedContainer) return;
@@ -56,23 +54,17 @@ async function loadSocialFeed() {
             </iframe>
           </div>`;
       } else if (mediaUrl.includes("youtube.com") || mediaUrl.includes("youtu.be")) {
-        let embedUrl = mediaUrl.includes("watch?v=") ? mediaUrl.replace("watch?v=", "embed/") : mediaUrl;
+        let embedUrl = mediaUrl;
+        if (mediaUrl.includes("watch?v=")) {
+          embedUrl = mediaUrl.replace("watch?v=", "embed/");
+        } else if (mediaUrl.includes("youtu.be/")) {
+          const videoId = mediaUrl.split("youtu.be/")[1].split("?")[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
         mediaElement = `
           <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
             <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
           </div>`;
-      } else if (mediaUrl.includes("t.me/")) {
-        // دعم فيديو تليجرام المباشر داخل الموقع عبر الودجت الرسمي
-        const tgPostPath = mediaUrl.replace("https://t.me/", "").replace("http://t.me/", "");
-        mediaElement = `
-          <div style="width: 100%; display: flex; justify-content: center; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                    data-telegram-post="${tgPostPath}" 
-                    data-width="100%">
-            </script>
-          </div>`;
-      } else if (data.type === "video" || mediaUrl.match(/\.(mp4|webm|ogg|mov)/i) || mediaUrl.includes("firebasestorage")) {
-        mediaElement = `<video src="${mediaUrl}" controls preload="metadata" style="width: 100%; border-radius: 12px;"></video>`;
       } else if (mediaUrl) {
         mediaElement = `<img src="${mediaUrl}" alt="نشاط" loading="lazy" style="width: 100%; border-radius: 12px; object-fit: cover;">`;
       }
@@ -101,19 +93,18 @@ async function loadSocialFeed() {
 
 loadSocialFeed();
 
-// 2. نشر الوسائط (مرن جداً: رفع من المعرض لوحده، أو رابط لوحده، أو وصف لوحده)
+// 2. نشر المنشورات (صفاء تام: وصف + رابط يوتيوب/ميديا فقط من غير رفع ملفات)
 const createPostForm = document.getElementById("createPostForm");
 if (createPostForm) {
   createPostForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const content = document.getElementById("postContent").value.trim();
-    const mediaFile = document.getElementById("postMediaFile") ? document.getElementById("postMediaFile").files[0] : null;
     const mediaUrlInput = document.getElementById("postMediaUrlInput").value.trim();
     const uploadStatus = document.getElementById("uploadStatus");
     const publishBtn = document.getElementById("publishBtn");
 
-    if (!content && !mediaFile && !mediaUrlInput) {
-      alert("برجاء كتابة وصف، أو اختيار فيديو من المعرض، أو وضع رابط!");
+    if (!content && !mediaUrlInput) {
+      alert("برجاء كتابة وصف أو وضع رابط فيديو يوتيوب على الأقل!");
       return;
     }
 
@@ -122,20 +113,10 @@ if (createPostForm) {
     uploadStatus.style.color = "#2563eb";
 
     try {
-      let finalMediaUrl = mediaUrlInput;
-      let mediaType = "url";
-
-      if (mediaFile) {
-        const fileRef = storageRef(storage, `academy_posts/${Date.now()}_${mediaFile.name}`);
-        const snapshot = await uploadBytes(fileRef, mediaFile);
-        finalMediaUrl = await getDownloadURL(snapshot.ref);
-        mediaType = mediaFile.type.startsWith("video") ? "video" : "image";
-      }
-
       await addDoc(collection(db, "posts"), {
         content: content,
-        mediaUrl: finalMediaUrl,
-        type: mediaType,
+        mediaUrl: mediaUrlInput,
+        type: "url",
         createdAt: new Date()
       });
 
@@ -194,7 +175,7 @@ if (bookingForm) {
   });
 }
 
-// 4. لوحة تحكم الأدمن (تسجيل الدخول والتنفيذ)
+// 4. لوحة تحكم الأدمن (تسجيل الدخول، عرض المنشورات، وحذفها)
 const adminLoginForm = document.getElementById("adminLoginForm");
 const adminLoginMessage = document.getElementById("adminLoginMessage");
 const adminDashboard = document.getElementById("adminDashboard");
@@ -246,7 +227,7 @@ async function loadAdminDashboard() {
           pHtml += `
             <div id="admin-post-${pId}" style="background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #fbcfe8; display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 0.85rem; color: #334155; max-width: 75%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                📌 ${pData.content || "منشور أو فيديو مرفوع"}
+                📌 ${pData.content || "منشور أو فيديو يوتيوب"}
               </span>
               <button class="delete-post-btn" data-id="${pId}" style="background: #e11d48; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">🗑️ حذف المنشور</button>
             </div>
