@@ -1,280 +1,345 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// إعدادات فايربيس (تأكد إنها مطابقة للمشروع عندك)
 const firebaseConfig = {
-  // يرجى التأكد من بيانات الفايربيس الخاصة بك هنا أو تركها كما هي في ملفك الحالي
+  apiKey: "AIzaSyB_70Yvw8rtLcSfBFDIHWL-5qxdpHLdaE",
+  authDomain: "speech-cinter.firebaseapp.com",
+  projectId: "speech-cinter",
+  storageBucket: "speech-cinter.firebasestorage.app",
+  messagingSenderId: "122680997828",
+  appId: "1:122680997828:web:f206bf2086324f4fd9d691",
+  measurementId: "G-42PX2DZWFH"
 };
 
-// تهيئة Firebase
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const storage = getStorage(app);
+const db = getFirestore(app);
 
-document.addEventListener("DOMContentLoaded", () => {
-  // تفعيل القائمة الجانبية للموبايل
-  const menuToggle = document.getElementById("menuToggle");
-  const navLinks = document.getElementById("navLinks");
-  if (menuToggle && navLinks) {
-    menuToggle.addEventListener("click", () => {
-      navLinks.classList.toggle("active");
-    });
-  }
+// 1. جلب وعرض المنشورات والفيديوهات في الواجهة العامة (دعم كامل لفيديوهات فيسبوك المدمجة)
+async function loadSocialFeed() {
+  const feedContainer = document.getElementById("socialFeedContainer");
+  if (!feedContainer) return;
 
-  // إدارة تسجيل دخول لوحة التحكم
-  const adminLoginForm = document.getElementById("adminLoginForm");
-  const adminDashboard = document.getElementById("adminDashboard");
-  const adminLoginMessage = document.getElementById("adminLoginMessage");
-  const adminLogout = document.getElementById("adminLogout");
+  try {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
 
-  // التحقق من حالة الدخول السابقة
-  if (sessionStorage.getItem("isAdminLoggedIn") === "true") {
-    if (adminLoginForm) adminLoginForm.style.display = "none";
-    if (adminDashboard) adminDashboard.classList.remove("hidden");
-  }
-
-  if (adminLoginForm) {
-    adminLoginForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const pass = document.getElementById("adminPassword").value;
-      // كلمة المرور الافتراضية (يمكنك تعديلها)
-      if (pass === "123456" || pass === "omar2026") {
-        sessionStorage.setItem("isAdminLoggedIn", "true");
-        adminLoginForm.style.display = "none";
-        adminDashboard.classList.remove("hidden");
-        adminLoginMessage.textContent = "";
-      } else {
-        adminLoginMessage.textContent = "كلمة المرور غير صحيحة!";
-        adminLoginMessage.style.color = "red";
-      }
-    });
-  }
-
-  if (adminLogout) {
-    adminLogout.addEventListener("click", () => {
-      sessionStorage.removeItem("isAdminLoggedIn");
-      location.reload();
-    });
-  }
-
-  // 1. نظام نشر الفيديوهات والمنشورات (مرن جداً: يقبل ملف أو رابط أو وصف بدون إجبار)
-  const createPostForm = document.getElementById("createPostForm");
-  if (createPostForm) {
-    createPostForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const content = document.getElementById("postContent").value.trim();
-      const mediaFile = document.getElementById("postMediaFile").files[0];
-      const mediaUrlInput = document.getElementById("postMediaUrlInput").value.trim();
-      const uploadStatus = document.getElementById("uploadStatus");
-
-      // الشرط المرن الجديد: يقبل لو في وصف أو ملف أو رابط
-      if (!content && !mediaFile && !mediaUrlInput) {
-        alert("برجاء كتابة وصف أو رفع فيديو/صورة من المعرض أو وضع رابط!");
-        return;
-      }
-
-      uploadStatus.textContent = "جاري النشر ومعالجة الملف...";
-      uploadStatus.style.color = "#2563eb";
-
-      try {
-        let finalMediaUrl = mediaUrlInput;
-        let mediaType = "none";
-
-        // لو تم اختيار ملف من المعرض
-        if (mediaFile) {
-          const fileFolderRef = storageRef(storage, `academy_posts/${Date.now()}_${mediaFile.name}`);
-          const snapshot = await uploadBytes(fileFolderRef, mediaFile);
-          finalMediaUrl = await getDownloadURL(snapshot.ref);
-          mediaType = mediaFile.type.startsWith("video") ? "video" : "image";
-        } else if (mediaUrlInput) {
-          mediaType = "url";
-        }
-
-        // حفظ البيانات في قاعدة بيانات Firebase Realtime Database
-        const postsRef = ref(db, "academy_posts");
-        const newPostRef = push(postsRef);
-        await set(newPostRef, {
-          content: content,
-          mediaUrl: finalMediaUrl,
-          mediaType: mediaType,
-          timestamp: Date.now(),
-          author: "مستر عمر رمزي"
-        });
-
-        uploadStatus.textContent = "تم نشر النشاط بنجاح للعامة! 🚀";
-        uploadStatus.style.color = "#16a34a";
-        createPostForm.reset();
-
-        setTimeout(() => {
-          uploadStatus.textContent = "";
-        }, 4000);
-
-      } catch (error) {
-        console.error(error);
-        uploadStatus.textContent = "حدث خطأ أثناء النشر، حاول مرة أخرى.";
-        uploadStatus.style.color = "red";
-      }
-    });
-  }
-
-  // 2. تحميل وعرض المنشورات للعامة في الموقع
-  const socialFeedContainer = document.getElementById("socialFeedContainer");
-  const adminPostsManageList = document.getElementById("adminPostsManageList");
-
-  const postsRef = ref(db, "academy_posts");
-  onValue(postsRef, (snapshot) => {
-    const data = snapshot.val();
-    if (!socialFeedContainer) return;
-
-    if (!data) {
-      socialFeedContainer.innerHTML = `<div style="text-align: center; padding: 30px; color: #64748b; background: white; border-radius: 16px;">لا توجد منشورات أو فيديوهات مضافة حالياً.</div>`;
-      if (adminPostsManageList) adminPostsManageList.innerHTML = `<p style="color: #64748b; font-size: 13px;">لا توجد منشورات مرفوعة حالياً.</p>`;
+    if (querySnapshot.empty) {
+      feedContainer.innerHTML = `
+        <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; color: #64748b; border: 1px dashed #cbd5e1;">
+          <p style="font-size: 1.1rem; margin: 0;">مستعدون لعرض أحدث أنشطتكم المتميزة!</p>
+          <small>قم بنشر أحدث فيديو أو نشاط من لوحة التحكم ليظهر هنا فوراً.</small>
+        </div>
+      `;
       return;
     }
 
-    let feedHtml = "";
-    let adminManageHtml = "";
+    let html = "";
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const mediaUrl = data.mediaUrl || "";
 
-    const postsArray = Object.entries(data).reverse(); // الأحدث أولاً
+      let mediaElement = "";
 
-    postsArray.forEach(([id, post]) => {
-      let mediaHtml = "";
-
-      if (post.mediaType === "video" || (post.mediaUrl && (post.mediaUrl.includes(".mp4") || post.mediaUrl.includes("firebasestorage")))) {
-        mediaHtml = `
-          <div style="position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-top: 12px;">
-            <video controls style="width: 100%; max-height: 450px; display: block;" src="${post.mediaUrl}"></video>
+      // لو الرابط من فيسبوك (فيديو أو منشور) يعرضه كفيديو مدمج احترافي
+      if (mediaUrl.includes("facebook.com") || mediaUrl.includes("fb.watch")) {
+        const encodedUrl = encodeURIComponent(mediaUrl);
+        mediaElement = `
+          <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
+            <iframe 
+              src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&width=500" 
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:none;" 
+              scrolling="no" 
+              frameborder="0" 
+              allowfullscreen="true" 
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+            </iframe>
           </div>`;
-      } else if (post.mediaType === "image") {
-        mediaHtml = `<div style="margin-top: 12px;"><img src="${post.mediaUrl}" style="width: 100%; border-radius: 12px; object-fit: cover;" alt="صورة النشاط"></div>`;
-      } else if (post.mediaType === "url" || post.mediaUrl) {
-        // فحص لو رابط يوتيوب
-        if (post.mediaUrl.includes("youtube.com") || post.mediaUrl.includes("youtu.be")) {
-          let ytEmbedUrl = post.mediaUrl;
-          if (ytEmbedUrl.includes("watch?v=")) {
-            ytEmbedUrl = ytEmbedUrl.replace("watch?v=", "embed/");
-          } else if (ytEmbedUrl.includes("youtu.be/")) {
-            ytEmbedUrl = ytEmbedUrl.replace("youtu.be/", "www.youtube.com/embed/");
-          }
-          mediaHtml = `
-            <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; margin-top: 12px;">
-              <iframe src="${ytEmbedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
-            </div>`;
-        } else {
-          mediaHtml = `
-            <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; margin-top: 12px;">
-              <iframe src="${post.mediaUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
-            </div>`;
-        }
+      } 
+      // لو رابط يوتيوب
+      else if (mediaUrl.includes("youtube.com") || mediaUrl.includes("youtu.be")) {
+        let embedUrl = mediaUrl.includes("watch?v=") ? mediaUrl.replace("watch?v=", "embed/") : mediaUrl;
+        mediaElement = `
+          <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
+            <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
+          </div>`;
+      } 
+      // لو فيديو مرفوع أو رابط مباشر
+      else if (data.type === "video" || mediaUrl.match(/\.(mp4|webm|ogg|mov)/i)) {
+        mediaElement = `<video src="${mediaUrl}" controls preload="metadata" style="width: 100%; border-radius: 12px;"></video>`;
+      } 
+      // لو صورة عادية
+      else {
+        mediaElement = `<img src="${mediaUrl}" alt="نشاط" loading="lazy" style="width: 100%; border-radius: 12px; object-fit: cover;">`;
       }
 
-      feedHtml += `
-        <div style="background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <img src="https://files.catbox.moe/pq1rnu.jpg" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;" alt="مستر عمر">
-            <div>
-              <strong style="display: block; color: #0f172a; font-size: 0.95rem;">مستر عمر رمزي</strong>
-              <small style="color: #64748b; font-size: 0.75rem;">Special City Academy • نشاط جديد</small>
+      html += `
+        <article class="feed-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
+          <div class="feed-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+            <img src="https://files.catbox.moe/pq1rnu.jpg" alt="مستر عمر رمزي" class="feed-avatar" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
+            <div class="feed-author-info">
+              <span class="feed-author-name" style="display: block; font-weight: bold; color: #0f172a;">مستر عمر رمزي</span>
+              <span class="feed-time" style="font-size: 0.8rem; color: #64748b;">Special City Academy • نشاط جديد</span>
             </div>
           </div>
-          ${post.content ? `<p style="color: #334155; font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px;">${post.content}</p>` : ""}
-          ${mediaHtml}
-        </div>`;
-
-      adminManageHtml += `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #f3e8ff;">
-          <span style="font-size: 0.85rem; color: #334155; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${post.content || "فيديو/صورة مرفوعة"}</span>
-          <button onclick="window.deleteAcademyPost('${id}')" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">حذف</button>
-        </div>`;
+          <div class="feed-content-text" style="margin-bottom: 15px; color: #334155; line-height: 1.6;">${data.content}</div>
+          <div class="feed-media-box">${mediaElement}</div>
+        </article>
+      `;
     });
 
-    socialFeedContainer.innerHTML = feedHtml;
-    if (adminPostsManageList) adminPostsManageList.innerHTML = adminManageHtml;
-  });
-
-  // دالة الحذف العامة
-  window.deleteAcademyPost = async function(postId) {
-    if (confirm("هل أنت متأكد من حذف هذا المنشور نهائياً؟")) {
-      try {
-        await remove(ref(db, `academy_posts/${postId}`));
-        alert("تم الحذف بنجاح!");
-      } catch (err) {
-        console.error(err);
-        alert("حدث خطأ أثناء الحذف.");
-      }
-    }
-  };
-
-  // 3. نظام الحجوزات وإرسالها لـ Firebase
-  const bookingForm = document.getElementById("bookingForm");
-  const bookingMessage = document.getElementById("bookingMessage");
-
-  if (bookingForm) {
-    bookingForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      bookingMessage.textContent = "جاري إرسال طلب الحجز...";
-      bookingMessage.style.color = "#2563eb";
-
-      const formData = {
-        parentName: document.getElementById("parent_name").value,
-        childName: document.getElementById("child_name").value,
-        childAge: document.getElementById("child_age").value,
-        phone: document.getElementById("phone").value,
-        service: document.getElementById("service").value,
-        bookingDate: document.getElementById("bookingDate").value,
-        bookingPeriod: document.getElementById("bookingPeriod").value,
-        timestamp: Date.now()
-      };
-
-      try {
-        const bookingsRef = ref(db, "academy_bookings");
-        const newBookingRef = push(bookingsRef);
-        await set(newBookingRef, formData);
-
-        bookingMessage.textContent = "تم إرسال طلب حجزك بنجاح وسنتواصل معك قريباً! 🎉";
-        bookingMessage.style.color = "#16a34a";
-        bookingForm.reset();
-      } catch (err) {
-        console.error(err);
-        bookingMessage.textContent = "حدث خطأ أثناء إرسال الحجز، حاول مرة أخرى.";
-        bookingMessage.style.color = "red";
-      }
-    });
+    feedContainer.innerHTML = html;
+  } catch (error) {
+    console.error(error);
+    feedContainer.innerHTML = `<p style="text-align: center; color: #ef4444;">تعذر تحميل المنشورات حالياً.</p>`;
   }
+}
 
-  // 4. جلب وعرض الحجوزات للادمن
-  const dynamicBookingsList = document.getElementById("dynamicBookingsList");
-  if (dynamicBookingsList) {
-    const bookingsRef = ref(db, "academy_bookings");
-    onValue(bookingsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) {
-        dynamicBookingsList.innerHTML = `<h4 style="color: var(--navy); margin-bottom: 10px;">📋 الحجوزات الواردة</h4><p style="color: #64748b; font-size: 13px;">لا توجد حجوزات جديدة حالياً.</p>`;
-        return;
-      }
+loadSocialFeed();
 
-      let html = `<h4 style="color: var(--navy); margin-bottom: 15px;">📋 الحجوزات الواردة (${Object.keys(data).length})</h4><div style="display: flex; flex-direction: column; gap: 12px;">`;
-      
-      Object.entries(data).reverse().forEach(([id, b]) => {
-        html += `
-          <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: right;">
-            <p style="margin: 0 0 5px 0;"><strong>ولي الأمر:</strong> ${b.parentName} | <strong>الطفل:</strong> ${b.childName} (${b.childAge})</p>
-            <p style="margin: 0 0 5px 0;"><strong>الخدمة:</strong> ${b.service} | <strong>التاريخ:</strong> ${b.bookingDate} (${b.bookingPeriod})</p>
-            <p style="margin: 0 0 10px 0;"><strong>الهاتف:</strong> <a href="tel:${b.phone}" style="color: #2563eb;">${b.phone}</a></p>
-            <button onclick="window.deleteBooking('${id}')" style="background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 11px;">حذف الحجز</button>
-          </div>`;
+// 2. نشر الوسائط (دعم رابط فيسبوك المباشر أو المعرض)
+const createPostForm = document.getElementById("createPostForm");
+if (createPostForm) {
+  createPostForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const content = document.getElementById("postContent").value.trim();
+    const mediaUrlInput = document.getElementById("postMediaUrlInput").value.trim();
+    const uploadStatus = document.getElementById("uploadStatus");
+    const publishBtn = document.getElementById("publishBtn");
+
+    if (!mediaUrlInput) {
+      alert("برجاء وضع رابط فيديو الفيسبوك أو الرابط المطلوب!");
+      return;
+    }
+
+    publishBtn.disabled = true;
+    publishBtn.innerText = "⏳ جاري نشر الفيديو في الموقع...";
+    uploadStatus.style.color = "#2563eb";
+
+    try {
+      await addDoc(collection(db, "posts"), {
+        content: content,
+        mediaUrl: mediaUrlInput,
+        type: "video",
+        createdAt: new Date()
       });
 
-      html += `</div>`;
-      dynamicBookingsList.innerHTML = html;
-    });
+      uploadStatus.style.color = "#16a34a";
+      uploadStatus.textContent = "✅ تم نشر الفيديو بنجاح للعامة!";
+      createPostForm.reset();
+      
+      loadSocialFeed();
+      loadAdminDashboard();
+    } catch (err) {
+      console.error(err);
+      uploadStatus.style.color = "#dc2626";
+      uploadStatus.textContent = "❌ حدث خطأ أثناء النشر.";
+    } finally {
+      publishBtn.disabled = false;
+      publishBtn.innerText = "🚀 نشر المنشور فوراً للعامة";
+    }
+  });
+}
+
+// 3. الحجوزات أونلاين
+const bookingDate = document.getElementById("bookingDate");
+if (bookingDate) {
+  const now = new Date();
+  bookingDate.min = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+}
+
+const bookingForm = document.getElementById("bookingForm");
+const bookingMessage = document.getElementById("bookingMessage");
+
+if (bookingForm) {
+  bookingForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    bookingMessage.className = "form-message";
+    const formData = new FormData(bookingForm);
+    
+    try {
+      await addDoc(collection(db, "bookings"), {
+        parent_name: formData.get("parent_name"),
+        child_name: formData.get("child_name"),
+        child_age: formData.get("child_age"),
+        phone: formData.get("phone"),
+        service: formData.get("service"),
+        booking_date: formData.get("booking_date"),
+        booking_period: formData.get("booking_period"),
+        createdAt: new Date()
+      });
+      bookingMessage.className = "form-message success";
+      bookingMessage.textContent = "تم إرسال طلب الحجز بنجاح ❤️ هنتواصل معاك لتأكيد الموعد.";
+      bookingForm.reset();
+    } catch (error) {
+      console.error(error);
+      bookingMessage.className = "form-message error";
+      bookingMessage.textContent = "حصلت مشكلة في إرسال الطلب.";
+    }
+  });
+}
+
+// 4. لوحة تحكم الأدمن (تسجيل الدخول والتنفيذ)
+const adminLoginForm = document.getElementById("adminLoginForm");
+const adminLoginMessage = document.getElementById("adminLoginMessage");
+const adminDashboard = document.getElementById("adminDashboard");
+
+if (adminLoginForm) {
+  adminLoginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const passwordInput = document.getElementById("adminPassword").value.trim();
+
+    try {
+      const passDoc = await getDoc(doc(db, "settings", "admin_password"));
+      let currentPassword = passDoc.exists() ? passDoc.data().password : "1234";
+
+      if (passwordInput === currentPassword) {
+        adminLoginForm.classList.add("hidden");
+        adminDashboard.classList.remove("hidden");
+        loadAdminDashboard();
+      } else {
+        adminLoginMessage.className = "form-message error";
+        adminLoginMessage.textContent = "كلمة المرور خاطئة!";
+      }
+    } catch (err) {
+      if (passwordInput === "1234") {
+        adminLoginForm.classList.add("hidden");
+        adminDashboard.classList.remove("hidden");
+        loadAdminDashboard();
+      } else {
+        adminLoginMessage.className = "form-message error";
+        adminLoginMessage.textContent = "كلمة المرور خاطئة!";
+      }
+    }
+  });
+}
+
+async function loadAdminDashboard() {
+  // أ. عرض المنشورات وتوفر ميزة الحذف
+  const postsManageList = document.getElementById("adminPostsManageList");
+  if (postsManageList) {
+    try {
+      const postsQ = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+      const postsSnap = await getDocs(postsQ);
+
+      if (postsSnap.empty) {
+        postsManageList.innerHTML = "<p style='color: #831843;'>لا توجد منشورات مرفوعة حالياً.</p>";
+      } else {
+        let pHtml = "";
+        postsSnap.forEach((pDoc) => {
+          const pData = pDoc.data();
+          const pId = pDoc.id;
+          pHtml += `
+            <div id="admin-post-${pId}" style="background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #fbcfe8; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem; color: #334155; max-width: 75%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                📌 ${pData.content || "منشور فيديو"}
+              </span>
+              <button class="delete-post-btn" data-id="${pId}" style="background: #e11d48; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">🗑️ حذف المنشور</button>
+            </div>
+          `;
+        });
+        postsManageList.innerHTML = pHtml;
+
+        document.querySelectorAll(".delete-post-btn").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const id = e.target.getAttribute("data-id");
+            if (confirm("هل أنت متأكد من حذف هذا المنشور نهائياً؟")) {
+              await deleteDoc(doc(db, "posts", id));
+              document.getElementById(`admin-post-${id}`).remove();
+              loadSocialFeed();
+            }
+          });
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      postsManageList.innerHTML = "<p style='color: red;'>تعذر جلب المنشورات.</p>";
+    }
   }
 
-  window.deleteBooking = async function(bookingId) {
-    if (confirm("هل تريد حذف هذا الحجز؟")) {
-      await remove(ref(db, `academy_bookings/${bookingId}`));
+  // ب. عرض قائمة الحجوزات الواردة
+  const dynamicList = document.getElementById("dynamicBookingsList");
+  dynamicList.innerHTML = "<p>جاري تحميل الحجوزات...</p>";
+
+  try {
+    const querySnapshot = await getDocs(collection(db, "bookings"));
+    if (querySnapshot.empty) {
+      dynamicList.innerHTML = "<p>لا توجد حجوزات مسجلة حتى الآن.</p>";
+      return;
     }
-  };
-});
+
+    let html = "<h4>قائمة الحجوزات الواردة أونلاين:</h4>";
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const docId = docSnap.id;
+      let cleanPhone = data.phone ? data.phone.replace(/\D/g, '') : '';
+      if (cleanPhone.startsWith('0')) cleanPhone = '2' + cleanPhone;
+      const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`مرحباً بحضرتك بخصوص طلب حجز جلسة لطفلك (${data.child_name}) في Special City Academy...`)}`;
+
+      html += `
+        <div id="booking-card-${docId}" style="background: #f8f9fa; border-right: 4px solid #448cf5; padding: 15px; margin: 12px 0; border-radius: 10px; text-align: right;">
+          <strong>ولي الأمر:</strong> ${data.parent_name}<br>
+          <strong>اسم الطفل:</strong> ${data.child_name} (${data.child_age})<br>
+          <strong>الهاتف:</strong> <a href="tel:${data.phone}" style="color: #448cf5;">${data.phone}</a>
+          <a href="${waLink}" target="_blank" style="background: #25d366; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; margin-right: 8px; text-decoration: none;">💬 واتساب</a><br>
+          <strong>الخدمة:</strong> ${data.service} | <strong>الموعد:</strong> ${data.booking_date} (${data.booking_period})
+          <div style="margin-top: 10px;">
+            <button class="delete-btn" data-id="${docId}" style="background: #ff4d4f; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;">🗑️ حذف الحجز</button>
+          </div>
+        </div>
+      `;
+    });
+    
+    dynamicList.innerHTML = html;
+
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const id = e.target.getAttribute("data-id");
+        if (confirm("هل أنت متأكد من حذف الحجز؟")) {
+          await deleteDoc(doc(db, "bookings", id));
+          document.getElementById(`booking-card-${id}`).remove();
+        }
+      });
+    });
+  } catch (error) {
+    console.error(error);
+    dynamicList.innerHTML = "<p style='color: red;'>حدث خطأ أثناء تحميل الحجوزات.</p>";
+  }
+}
+
+// 5. برمجة زر تغيير كلمة المرور للمسؤول
+const changePasswordForm = document.getElementById("changePasswordForm");
+if (changePasswordForm) {
+  changePasswordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newPass = document.getElementById("newAdminPassword").value.trim();
+    const statusDiv = document.getElementById("passwordChangeStatus");
+
+    if (!newPass) {
+      alert("برجاء كتابة كلمة المرور الجديدة!");
+      return;
+    }
+
+    try {
+      await setDoc(doc(db, "settings", "admin_password"), {
+        password: newPass
+      });
+
+      statusDiv.style.color = "#047857";
+      statusDiv.textContent = "✅ تم تغيير كلمة المرور بنجاح!";
+      changePasswordForm.reset();
+    } catch (err) {
+      console.error(err);
+      statusDiv.style.color = "#dc2626";
+      statusDiv.textContent = "❌ حدث خطأ أثناء تغيير كلمة المرور.";
+    }
+  });
+}
+
+const adminLogout = document.getElementById("adminLogout");
+if (adminLogout) {
+  adminLogout.addEventListener("click", () => {
+    adminDashboard.classList.add("hidden");
+    adminLoginForm.classList.remove("hidden");
+    adminLoginForm.reset();
+  });
+}
