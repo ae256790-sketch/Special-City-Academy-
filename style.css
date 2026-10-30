@@ -36,7 +36,7 @@ img, video { display: block; max-width: 100%; }
 
 .header-inner {
   width: min(1250px, 94%); min-height: 84px; margin: auto;
-  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 15px;
 }
 
 .brand { display: flex; align-items: center; gap: 11px; }
@@ -48,8 +48,10 @@ img, video { display: block; max-width: 100%; }
 .brand-text strong { font-size: 15px; font-weight: 900; color: var(--navy); }
 .brand-text small { font-size: 10px; color: var(--muted); }
 
-.nav-links { display: flex; align-items: center; gap: 20px; }
-.nav-links a { font-size: 13px; font-weight: 800; color: #5e6d82; }
+/* القائمة مفرودة وجنب بعضها وبشكل مرتب */
+.nav-links { display: flex; align-items: center; gap: 15px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a { font-size: 12px; font-weight: 800; color: #5e6d82; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 9px;
@@ -137,6 +139,30 @@ img, video { display: block; max-width: 100%; }
     width: 94% !important;
   }
   .style-container, section {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* التعديل السحري الجديد: التفرقة الذكية بين اللاب/التابلت والموبايل الصغير */
+@media (min-width: 481px) {
+  body {
+    zoom: 100% !important; 
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    zoom: 82% !important;
+    overflow-x: hidden !important;
+  }
+  
+  .feed-media-box, 
+  .feed-media-box iframe, 
+  .feed-media-box video, 
+  .feed-media-box audio,
+  audio {
+    width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
   }
